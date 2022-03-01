@@ -15,7 +15,7 @@ void bombTask();
 //SSD1306Wire display(0x3c, SDA, SCL, GEOMETRY_128_32);
 SSD1306Wire display(0x3c, SDA, SCL, GEOMETRY_64_48);
 
-void setup() 
+void setup()
 {
   btnsTask();
   bombTask();
@@ -26,11 +26,11 @@ void loop() {
   btnsTask();
   bombTask();
 }
-void disarmTask() 
+void disarmTask()
 {
 
 }
-void btnsTask() 
+void btnsTask()
 {
   enum class BtnsStates {INIT, WAITING_PRESS , WAITING_STABLE, WAITING_RELEASE};
   static BtnsStates btnsState =  BtnsStates::INIT;
@@ -38,34 +38,34 @@ void btnsTask()
   const uint32_t STABLETIMEOUT = 100;
   static uint8_t PressedBtn;
 
-  switch (btnsState) 
+  switch (btnsState)
   {
-    case BtnsStates::INIT: 
-    {
+    case BtnsStates::INIT:
+      {
         pinMode(ARM_BTN, INPUT_PULLUP);
         pinMode(DOWN_BTN, INPUT_PULLUP);
         pinMode(UP_BTN, INPUT_PULLUP);
         btnsState = BtnsStates::WAITING_PRESS;
         break;
       }
-    case BtnsStates::WAITING_PRESS: 
-    {
+    case BtnsStates::WAITING_PRESS:
+      {
 
-        if (digitalRead(UP_BTN) == LOW) 
+        if (digitalRead(UP_BTN) == LOW)
         {
           referenceTime = millis();
           PressedBtn = UP_BTN;
           btnsState = BtnsStates::WAITING_STABLE;
 
         }
-        else if (digitalRead(DOWN_BTN) == LOW) 
+        else if (digitalRead(DOWN_BTN) == LOW)
         {
           PressedBtn = DOWN_BTN;
           referenceTime = millis();
           btnsState = BtnsStates::WAITING_STABLE;
 
         }
-        else if (digitalRead(ARM_BTN) == LOW) 
+        else if (digitalRead(ARM_BTN) == LOW)
         {
           PressedBtn = ARM_BTN;
           referenceTime = millis();
@@ -74,37 +74,37 @@ void btnsTask()
 
         break;
       }
-    case BtnsStates::WAITING_STABLE: 
-    {
-        if (PressedBtn == UP_BTN) 
+    case BtnsStates::WAITING_STABLE:
+      {
+        if (PressedBtn == UP_BTN)
         {
-          if (digitalRead(UP_BTN) == HIGH) 
+          if (digitalRead(UP_BTN) == HIGH)
           {
             btnsState = BtnsStates::WAITING_PRESS;
           }
-          else if ( (millis() - referenceTime) >= STABLETIMEOUT) 
+          else if ( (millis() - referenceTime) >= STABLETIMEOUT)
           {
             btnsState = BtnsStates::WAITING_RELEASE;
           }
         }
-        else if (PressedBtn == DOWN_BTN) 
+        else if (PressedBtn == DOWN_BTN)
         {
-          if (digitalRead(DOWN_BTN) == HIGH) 
+          if (digitalRead(DOWN_BTN) == HIGH)
           {
             btnsState = BtnsStates::WAITING_PRESS;
           }
-          else if ( (millis() - referenceTime) >= STABLETIMEOUT) 
+          else if ( (millis() - referenceTime) >= STABLETIMEOUT)
           {
             btnsState = BtnsStates::WAITING_RELEASE;
           }
         }
-        else if (PressedBtn == ARM_BTN) 
+        else if (PressedBtn == ARM_BTN)
         {
-          if (digitalRead(ARM_BTN) == HIGH) 
+          if (digitalRead(ARM_BTN) == HIGH)
           {
             btnsState = BtnsStates::WAITING_PRESS;
           }
-          else if ( (millis() - referenceTime) >= STABLETIMEOUT) 
+          else if ( (millis() - referenceTime) >= STABLETIMEOUT)
           {
             btnsState = BtnsStates::WAITING_RELEASE;
           }
@@ -112,12 +112,12 @@ void btnsTask()
 
         break;
       }
-    case BtnsStates::WAITING_RELEASE: 
-    {
+    case BtnsStates::WAITING_RELEASE:
+      {
 
-        if (PressedBtn == UP_BTN) 
+        if (PressedBtn == UP_BTN)
         {
-          if (digitalRead(UP_BTN) == HIGH) 
+          if (digitalRead(UP_BTN) == HIGH)
           {
             evBtns = true;
             evBtnsData = UP_BTN;
@@ -125,9 +125,9 @@ void btnsTask()
             Serial.println("UP_BTN");
           }
         }
-        else if (PressedBtn == DOWN_BTN) 
+        else if (PressedBtn == DOWN_BTN)
         {
-          if (digitalRead(DOWN_BTN) == HIGH) 
+          if (digitalRead(DOWN_BTN) == HIGH)
           {
             evBtns = true;
             evBtnsData = DOWN_BTN;
@@ -135,9 +135,9 @@ void btnsTask()
             Serial.println("DOWN_BTN");
           }
         }
-        else if (PressedBtn == ARM_BTN) 
+        else if (PressedBtn == ARM_BTN)
         {
-          if (digitalRead(ARM_BTN) == HIGH) 
+          if (digitalRead(ARM_BTN) == HIGH)
           {
             evBtns = true;
             evBtnsData = ARM_BTN;
@@ -156,17 +156,17 @@ void btnsTask()
 }
 
 
-void bombTask() 
+void bombTask()
 {
   enum class BombStates {INIT, CONFIG, ARMED, BOOM};
   static BombStates bombState =  BombStates::INIT;
   static uint8_t counter = 20;
 
-  switch (bombState) 
+  switch (bombState)
   {
 
-    case BombStates::INIT: 
-    {        
+    case BombStates::INIT:
+      {
         pinMode(LED_COUNT, OUTPUT);
         pinMode(BOMB_OUT, OUTPUT);
 
@@ -182,23 +182,23 @@ void bombTask()
         display.clear();
         display.drawString(20, 0, String(counter));
         display.display();
-        
+
 
         bombState = BombStates::CONFIG;
 
         break;
       }
 
-    case BombStates::CONFIG: 
-    {
+    case BombStates::CONFIG:
+      {
 
-        if (evBtns == true) 
+        if (evBtns == true)
         {
           evBtns = false;
 
-          if (evBtnsData == UP_BTN) 
+          if (evBtnsData == UP_BTN)
           {
-            if (counter < 60) 
+            if (counter < 60)
             {
               counter++;
             }
@@ -206,9 +206,9 @@ void bombTask()
             display.drawString(20, 0, String(counter));
             display.display();
           }
-          else if (evBtnsData == DOWN_BTN) 
+          else if (evBtnsData == DOWN_BTN)
           {
-            if (counter > 10) 
+            if (counter > 10)
             {
               counter--;
             }
@@ -216,7 +216,7 @@ void bombTask()
             display.drawString(20, 0, String(counter));
             display.display();
           }
-          else if (evBtnsData == ARM_BTN) 
+          else if (evBtnsData == ARM_BTN)
           {
             bombState = BombStates::ARMED;
             Serial.println("BombStates::ARMED");
@@ -226,49 +226,79 @@ void bombTask()
         break;
       }
 
-    case BombStates::ARMED: 
-    {
+    case BombStates::ARMED:
+      {
         const uint32_t interval = 400;
-
+        static uint8_t passwordCounter = 0;
+        const uint8_t passwordMax = 7;
+        static uint8_t password [passwordMax] = {UP_BTN, UP_BTN, DOWN_BTN, DOWN_BTN, UP_BTN, DOWN_BTN, ARM_BTN}; //<- Defusing password
+        static uint8_t passwordTry [passwordMax];
         static uint32_t previousMillis = 0;
         static uint8_t ledState_BOMB_OUT = LOW;
+        bool isPasswordCorrect = false;
+
+
+
 
         uint32_t currentMillis = millis();
         bool boomState = false;
 
-        if (currentMillis - previousMillis >= interval) 
+        if (currentMillis - previousMillis >= interval)
         {
           previousMillis = currentMillis;
-          if (ledState_BOMB_OUT == LOW) 
+          if (ledState_BOMB_OUT == LOW)
           {
             ledState_BOMB_OUT = HIGH;
           }
-          else 
+          else
           {
             ledState_BOMB_OUT = LOW;
           }
           digitalWrite(LED_COUNT, ledState_BOMB_OUT);
-          if (ledState_BOMB_OUT == HIGH) {
+          if (ledState_BOMB_OUT == HIGH)
+          {
             counter--;
             display.clear();
             display.drawString(20, 0, String(counter));
             display.display();
           }
-          if(Serial.available() >= 2)
+          if (evBtns == true)
           {
-            int dataRx1 = Serial.read();
-            int dataRx2 = Serial.read();
-            int dataRx3 = Serial.read();
+            evBtns = false;
+            if (passwordCounter < passwordMax)
+            {
+              passwordTry [passwordCounter] = evBtnsData; //<--------------- Defusing
+              passwordCounter++;
+            }
+            else if (passwordCounter == passwordMax)
+            {
+              DefuseTask (passwordTry, password, passwordMax, &isPasswordCorrect);
+              if (isPasswordCorrect == true)
+              {
+                display.clear();
+                display.drawString(7, 0, String("BOMB DEFUSED"));
+                display.display();
+                for (uint8_t p = 0; p < passwordMax; p++)
+                {
+                  passwordTry[p] = 0;
+                }
+
+                delay(2500);
+
+
+                bombState = BombStates::INIT;
+              }
+            }
           }
         }
-        else if (counter == 0) 
+        else if (counter == 0)
         {
-          bombState = BombStates::BOOM;          
+          bombState = BombStates::BOOM;
         }
         break;
       }
-     case BombStates::BOOM:
-     {
+    case BombStates::BOOM:
+      {
         digitalWrite(LED_COUNT, LOW);
         digitalWrite(BOMB_OUT, HIGH);
         display.clear();
@@ -276,12 +306,26 @@ void bombTask()
         display.display();
 
         delay(2500);
-        
+
         bombState = BombStates::INIT;
-     }
+      }
     default:
-    
+
       break;
   }
-
+}
+void DefuseTask (uint8_t *passTry, uint8_t *pass, uint8_t passMax, bool *isCorrect) //<--------------- Defusing task
+{
+  for (uint8_t i = 0; i < passMax; i++)
+  {
+    if (pass[i] == passTry[i])
+    {
+      *isCorrect = true;
+    }
+    else
+    {
+      *isCorrect = false;
+      break;
+    }
+  }
 }
