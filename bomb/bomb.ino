@@ -228,16 +228,15 @@ void bombTask()
 
     case BombStates::ARMED:
       {
-        const uint32_t interval = 400;
+        
+        const uint32_t interval = 500;
         static uint8_t passwordCounter = 0;
         const uint8_t passwordMax = 7;
         static uint8_t password [passwordMax] = {UP_BTN, UP_BTN, DOWN_BTN, DOWN_BTN, UP_BTN, DOWN_BTN, ARM_BTN}; //<- Defusing password
-        static uint8_t passwordTry [passwordMax];
+        static uint8_t passwordTry [passwordMax] = {0};
         static uint32_t previousMillis = 0;
-        static uint8_t ledState_BOMB_OUT = LOW;
+        static uint8_t led_countState = LOW;
         bool isPasswordCorrect = false;
-
-
 
 
         uint32_t currentMillis = millis();
@@ -246,54 +245,79 @@ void bombTask()
         if (currentMillis - previousMillis >= interval)
         {
           previousMillis = currentMillis;
-          if (ledState_BOMB_OUT == LOW)
+          if (led_countState == LOW)
           {
-            ledState_BOMB_OUT = HIGH;
+            led_countState = HIGH;
           }
           else
           {
-            ledState_BOMB_OUT = LOW;
+            led_countState = LOW;
           }
-          digitalWrite(LED_COUNT, ledState_BOMB_OUT);
-          if (ledState_BOMB_OUT == HIGH)
+          digitalWrite(LED_COUNT, led_countState);
+          if (led_countState == HIGH)
           {
             counter--;
             display.clear();
             display.drawString(20, 0, String(counter));
             display.display();
           }
-          if (evBtns == true)
+          if (counter == 0) 
+          {
+          bombState = BombStates::BOOM;
+          }
+
+          // --------------------------DEFUSING---------------------------
+          if (evBtns == true) 
           {
             evBtns = false;
-            if (passwordCounter < passwordMax)
+            if (passwordCounter < passwordMax) 
             {
-              passwordTry [passwordCounter] = evBtnsData; //<--------------- Defusing
+              if (evBtnsData == UP_BTN) 
+              {
+                passwordTry[passwordCounter] = UP_BTN;
+                Serial.println("Up");
+              }
+              else if (evBtnsData == DOWN_BTN) 
+              {
+                passwordTry[passwordCounter] = DOWN_BTN;
+                Serial.println("Down");
+              }
+              else if (evBtnsData == ARM_BTN) 
+              {
+                passwordTry[passwordCounter] = ARM_BTN;
+                Serial.println("Arm");
+              }
               passwordCounter++;
             }
-            else if (passwordCounter == passwordMax)
+          }
+          else if (passwordCounter == passwordMax) 
+          {
+            DefuseTask (passwordTry, password, passwordMax, &isPasswordCorrect);
+            if (isPasswordCorrect == true) 
             {
-              DefuseTask (passwordTry, password, passwordMax, &isPasswordCorrect);
-              if (isPasswordCorrect == true)
+
+              Serial.println("Correct pass");
+              display.clear();
+              display.drawString(0, 5, String("Disarm"));
+              display.display();
+              for (uint8_t k = 0; k < passwordMax; k++)
               {
-                display.clear();
-                display.drawString(7, 0, String("BOMB DEFUSED"));
-                display.display();
-                for (uint8_t p = 0; p < passwordMax; p++)
-                {
-                  passwordTry[p] = 0;
-                }
-
-                delay(2500);
-
-
-                bombState = BombStates::INIT;
+                passwordTry[k] = 0;
               }
+              delay(3000);
+              bombState = BombStates::INIT;
+            }
+            else 
+            {
+              Serial.println("Wrong Pass");
+              passwordCounter = 0;
+              for (uint8_t j = 0; j < passwordMax; j++) 
+              {
+                passwordTry[j] = 0;
+              }
+              delay(500);
             }
           }
-        }
-        else if (counter == 0)
-        {
-          bombState = BombStates::BOOM;
         }
         break;
       }
